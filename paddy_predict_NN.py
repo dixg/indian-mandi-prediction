@@ -1,4 +1,4 @@
-import prediction_functions
+from prediction_functions import *
 
 def run():
     mandi_list = ['barwala' ]
@@ -8,7 +8,7 @@ def run():
     for mandi in mandi_list:
         for commodity in commodity_list:
             print( commodity, mandi)
-            prediction_functions.create_model_for_mandi_n_commodity(commodity_name=commodity, mandi_name=mandi, interval = "daily")
+            create_model_for_mandi_n_commodity(commodity_name=commodity, mandi_name=mandi, interval = "daily")
 
 if __name__ == "__main__":
     run()

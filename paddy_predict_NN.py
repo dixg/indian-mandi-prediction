@@ -1,14 +1,18 @@
 from prediction_functions import *
 
 def run():
-    mandi_list = ['barwala' ]
-    commodity_list = ['paddy']
-    period = ['daily']   
-    
-    for mandi in mandi_list:
-        for commodity in commodity_list:
-            print( commodity, mandi)
-            create_model_for_mandi_n_commodity(commodity_name=commodity, mandi_name=mandi, interval = "daily")
+    # TODO 1: Add mapping for new mandi and commodity   
+    locations_commodities_dict={'ADAMPUR':['AMERICAN-COTTON','GUAR SEEDS','MUSTARD'],
+                            'AMBALA':['MUSTARD'],
+                            'ASANDH':['PADDY-BASMATI','PADDY-BASMATI1121'],
+                            'BARWALA HISAR':['PADDY-BASMATI1121','AMERICAN-COTTON','COTTON']
+                            }
 
+    for key,val in locations_commodities_dict.items():
+        for commodity in val:
+            print(key,commodity)
+            create_model_for_mandi_n_commodity(commodity_name=commodity, mandi_name=key, interval = "daily")
+
+            
 if __name__ == "__main__":
     run()

@@ -9,10 +9,6 @@ import numpy as np
 import pandas as pd
 from datetime import datetime
 
-# TODO 1: Add mapping for new mandi and commodity  
-commodity_name_map={"paddy":"PADDY-BASMATI1121"}
-mandi_name_map={"barwala":"BARWALA HISAR", "adampur": "ADAMPUR"}
-dict1={'adampur':['AMERICAN-COTTON','GUAR SEEDS','MUSTARD'], 'AMBALA':['MUSTARD']}
 
 def get_price_df_by(commodity_name, mandi_name):
    cookies = {
@@ -41,8 +37,8 @@ def get_price_df_by(commodity_name, mandi_name):
    data = {
        'language': 'en',
        'stateName': 'HARYANA',
-       'commodityName':  commodity_name_map[commodity_name],  #'PADDY-BASMATI1121',
-       'apmcName': mandi_name_map[mandi_name], #'BARWALA HISAR',
+       'commodityName': commodity_name, 
+       'apmcName': mandi_name,
        'fromDate': '2018-11-24',
        'toDate': '2022-20-02'
    }
@@ -95,6 +91,10 @@ def get_price_df_by(commodity_name, mandi_name):
    # converted string Datetime to Python Date time object
    data.index = pd.to_datetime(data.index, unit='s')
    return data
+
+
+
+
 
 # divided data into 2 sets training set and test set with 80% and 20% data respectevly
 def train_test_split(df, test_size=0.2):
@@ -187,7 +187,6 @@ def load_and_plot_model(target_col, test, window_len, epochs, batch_size, X_trai
     preds = pd.Series(index=targets.index, data=preds)
     plot_line(targets, preds, 'actual', 'prediction', lw=2)
  
-#  TODO change argument nams 
 def create_model_for_mandi_n_commodity(commodity_name, mandi_name, interval):
     commodity_price_df = get_price_df_by(commodity_name=commodity_name, mandi_name=mandi_name)
     
@@ -223,7 +222,7 @@ def create_model_for_mandi_n_commodity(commodity_name, mandi_name, interval):
     base_file_name = "models/{MANDI_NAME}_{COMMODITY_NAME}_{INTERVAL}.model"
     model.save(base_file_name.format(MANDI_NAME= mandi_name, COMMODITY_NAME=commodity_name , INTERVAL=interval ))
     
-    # load_and_plot_model(target_col, test, window_len, epochs, batch_size, X_train, X_test, y_train, y_test, model, history)
+    load_and_plot_model(target_col, test, window_len, epochs, batch_size, X_train, X_test, y_train, y_test, model, history)
 
  
  

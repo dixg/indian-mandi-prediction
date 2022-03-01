@@ -43,7 +43,7 @@ data = {
     'commodityName': 'PADDY-BASMATI1121',
     'apmcName': 'BARWALA HISAR',
     'fromDate': '2018-11-24',
-    'toDate': '2021-11-27'
+    'toDate': '2022-02-28'
 }
 
 response = requests.post('https://enam.gov.in/web/Ajax_ctrl/trade_data_list',

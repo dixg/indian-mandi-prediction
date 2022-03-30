@@ -189,7 +189,7 @@ for dic_item in new_dict_list2:
         filtered_modal_price_list.append(dic_item)
 df2 = pd.DataFrame(filtered_modal_price_list, columns=[
                   'date', 'chana_price'])
-# print("$$$$$$$$$$$$$$$$",df2)
+print("$$$$$$$$$$$$$$$$",df2)
 df2 = df2.sort_values('date', ascending=True)
 df2.plot(ax=ax, x='date', y='chana_price', c='red')
 plt.autoscale(enable=True, axis='y')

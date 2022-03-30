@@ -12,7 +12,8 @@ def run():
         for commodity in val:
             print(key,commodity)
             create_model_for_mandi_n_commodity(commodity_name=commodity, mandi_name=key, interval = "daily")
-
+            print("_____________________________===========================))))))))))))))))))")
+            load_and_plot_model(commodity_name=commodity, mandi_name=key, interval = "daily")
             
 if __name__ == "__main__":
     run()

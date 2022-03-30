@@ -1,14 +1,13 @@
 from sklearn.metrics import r2_score
 from sklearn.metrics import mean_squared_error, mean_absolute_error
-import requests
 from keras.models import Sequential,load_model
 from keras.layers import Activation, Dense, Dropout, LSTM
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
+import requests
 import pandas as pd
 from datetime import datetime
-
 
 def get_price_df_by(commodity_name, mandi_name):
    cookies = {
@@ -92,10 +91,6 @@ def get_price_df_by(commodity_name, mandi_name):
    data.index = pd.to_datetime(data.index, unit='s')
    return data
 
-
-
-
-
 # divided data into 2 sets training set and test set with 80% and 20% data respectevly
 def train_test_split(df, test_size=0.2):
    split_row = len(df) - int(test_size * len(df))
@@ -104,11 +99,11 @@ def train_test_split(df, test_size=0.2):
    return train_data, test_data
 
 # plot func to show data on graph
-def plot_line(line1, line2, label1=None, label2=None, title='Training-Testing', lw=2):
+def plot_line(commodity_name,line1, line2, label1=None, label2=None, title='Training-Testing', lw=2):
    fig, ax = plt.subplots(1, figsize=(13, 7))
    ax.plot(line1, label=label1, linewidth=lw)
    ax.plot(line2, label=label2, linewidth=lw)
-   ax.set_ylabel('paddy_basmati price', fontsize=14)
+   ax.set_ylabel(commodity_name, fontsize=14)
    ax.set_title(title, fontsize=16)
    ax.legend(loc='best', fontsize=16)
    plt.show()
@@ -153,17 +148,36 @@ def build_lstm_model(input_data, output_size, neurons=100, activ_func='linear',
    model.compile(loss=loss, optimizer=optimizer)
    return model
  
-def load_and_plot_model(target_col, test, window_len, epochs, batch_size, X_train, X_test, y_train, y_test, model, history):
-        # It can be used to reconstruct the model identically.
-    saved_model = load_model("barwala_paddy_daily.model")
+def load_and_plot_model(commodity_name, mandi_name, interval):
     
-    # Let's check:
-    np.testing.assert_allclose(
-    model.predict(X_test),saved_model.predict(X_test)
-    )
+    base_file_name = "models/{MANDI_NAME}_{COMMODITY_NAME}_{INTERVAL}.model"
+
+    # Rename saved_model history
+    saved_model = load_model(base_file_name.format(MANDI_NAME= mandi_name, COMMODITY_NAME=commodity_name , INTERVAL=interval))
     
-    saved_model.fit( X_train, y_train, validation_data=(X_test, y_test), epochs=epochs, batch_size=batch_size, verbose=1, shuffle=True)
+    #UNDER REVIEW
+    commodity_price_df = get_price_df_by(commodity_name=commodity_name, mandi_name=mandi_name)
+    train,test = train_test_split(commodity_price_df, test_size=0.2)
+    target_col = 'commodity_price' 
+    test_size = 0.2
+    zero_base = True
+    window_len = 5
+    epochs = 20
+    batch_size = 32
+ 
+    # training the model
+    train, test, X_train, X_test, y_train, y_test = prepared_data(commodity_price_df, target_col, window_len, zero_base, test_size)
     
+    ######## under edit
+    
+    #  # Let's check:
+    # np.testing.assert_allclose(
+    # model.predict(X_test),saved_model.predict(X_test)
+    # )
+    
+    history=saved_model.fit( X_train, y_train, validation_data=(X_test, y_test), epochs=epochs, batch_size=batch_size, verbose=1, shuffle=True)
+
+
     plt.plot(history.history['loss'], 'r', linewidth=2, label='Train loss')
     plt.plot(history.history['val_loss'], 'g',
             linewidth=2, label='Validation loss')
@@ -173,7 +187,7 @@ def load_and_plot_model(target_col, test, window_len, epochs, batch_size, X_trai
     plt.show()
     
     targets = test[target_col][window_len:]
-    X_future = None
+    # X_future = None
     preds = saved_model.predict(X_test).squeeze()
     MAE=mean_absolute_error(preds, y_test)
     
@@ -185,7 +199,7 @@ def load_and_plot_model(target_col, test, window_len, epochs, batch_size, X_trai
     
     preds = test[target_col].values[:-window_len] * (preds + 1)
     preds = pd.Series(index=targets.index, data=preds)
-    plot_line(targets, preds, 'actual', 'prediction', lw=2)
+    plot_line(commodity_name,targets, preds, 'actual', 'prediction', lw=2)
  
 def create_model_for_mandi_n_commodity(commodity_name, mandi_name, interval):
     commodity_price_df = get_price_df_by(commodity_name=commodity_name, mandi_name=mandi_name)
@@ -217,12 +231,9 @@ def create_model_for_mandi_n_commodity(commodity_name, mandi_name, interval):
     X_train, output_size=1, neurons=lstm_neurons, dropout=dropout, loss=loss,
     optimizer=optimizer)
     
-    history = model.fit(
-    X_train, y_train, validation_data=(X_test, y_test), epochs=epochs, batch_size=batch_size, verbose=1, shuffle=True)
+    history = model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=epochs, batch_size=batch_size, verbose=1, shuffle=True)
     base_file_name = "models/{MANDI_NAME}_{COMMODITY_NAME}_{INTERVAL}.model"
-    model.save(base_file_name.format(MANDI_NAME= mandi_name, COMMODITY_NAME=commodity_name , INTERVAL=interval ))
     
-    load_and_plot_model(target_col, test, window_len, epochs, batch_size, X_train, X_test, y_train, y_test, model, history)
-
- 
- 
+    model.save(base_file_name.format(MANDI_NAME= mandi_name, COMMODITY_NAME=commodity_name , INTERVAL=interval))
+    
+   

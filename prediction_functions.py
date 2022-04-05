@@ -1,5 +1,4 @@
-from sklearn.metrics import r2_score
-from sklearn.metrics import mean_squared_error, mean_absolute_error
+# from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from keras.models import Sequential,load_model
 from keras.layers import Activation, Dense, Dropout, LSTM
 import matplotlib.pyplot as plt
@@ -33,13 +32,14 @@ def get_price_df_by(commodity_name, mandi_name):
        'Referer': 'https://enam.gov.in/web/dashboard/trade-data',
        'Accept-Language': 'en-US,en;q=0.9',
    }
+#    date format yyyy-mm-dd
    data = {
        'language': 'en',
        'stateName': 'HARYANA',
        'commodityName': commodity_name, 
        'apmcName': mandi_name,
-       'fromDate': '2018-11-24',
-       'toDate': '2022-20-02'
+       'fromDate': '2022-01-01',
+       'toDate': '2022-03-31'
    }
  
    response = requests.post('https://enam.gov.in/web/Ajax_ctrl/trade_data_list',
@@ -100,6 +100,7 @@ def train_test_split(df, test_size=0.2):
 
 # plot func to show data on graph
 def plot_line(commodity_name,line1, line2, label1=None, label2=None, title='Training-Testing', lw=2):
+   print( "🦒",   line1, line2)
    fig, ax = plt.subplots(1, figsize=(13, 7))
    ax.plot(line1, label=label1, linewidth=lw)
    ax.plot(line2, label=label2, linewidth=lw)
@@ -113,16 +114,50 @@ def plot_line(commodity_name,line1, line2, label1=None, label2=None, title='Trai
  
 def normalise_zero_base(df):
    return df / df.iloc[0] - 1
+
 def normalise_min_max(df):
    return (df - df.min()) / (data.max() - df.min())
+
 def extract_window_data(df, window_len=5, zero_base=True):
-   window_data = []
-   for idx in range(len(df) - window_len):
-       tmp = df[idx: (idx + window_len)].copy()
-       if zero_base:
-           tmp = normalise_zero_base(tmp)
-       window_data.append(tmp.values)
-   return np.array(window_data)
+    """_summary_
+
+    Args:
+        df (_type_): _description_
+        window_len (int, optional): _description_. Defaults to 5.
+        zero_base (bool, optional): _description_. Defaults to True.
+
+    Returns:
+        _type_: _description_
+    """
+    window_data = []
+    for idx in range(len(df) - window_len):
+        tmp = df[idx: (idx + window_len)].copy()
+        if zero_base:
+            tmp = normalise_zero_base(tmp)
+        window_data.append(tmp.values)
+    return np.array(window_data)
+"""
+train_data_df:
+index         value
+2022-03-10    100
+2022-03-11    101
+2022-03-12    102
+2022-03-13    103
+2022-03-14    104
+2022-03-15    105
+2022-03-16    106
+2022-03-17    107
+2022-03-18    108
+2022-03-19    109
+2022-03-20    110
+Y_train[i] = f(X_train[i])
+X_train: [100,101,102,103,104,105,106,107,108,109]
+Y_train: [101,102,103,104,105,106,107,108,109,110]
+
+
+y=f(x)
+here x is value for a date and y is predicted value for the date+(window_length)
+"""
  
 # fucntion to prepare data by splitting the data into set train set and test set to feed the LSTM model
 def prepared_data(df, target_col, window_len=5, zero_base=True, test_size=0.2):
@@ -148,6 +183,32 @@ def build_lstm_model(input_data, output_size, neurons=100, activ_func='linear',
    model.compile(loss=loss, optimizer=optimizer)
    return model
  
+#  rename load_and_plot_model to prediction_func
+"""_summary_
+df:
+index         value
+2022-03-10    100
+2022-03-11    101
+2022-03-12    102
+2022-03-13    103
+2022-03-14    104
+2022-03-15    105
+2022-03-16    106
+2022-03-17    107
+2022-03-18    108
+2022-03-19    109
+2022-03-20    110
+...
+2022-04-05    160
+
+interval = daily
+
+y=f(x)
+
+y = value on 2022-04-06  -> to be returned
+f = saved model
+x = value on date 2022-04-05
+"""
 def load_and_plot_model(commodity_name, mandi_name, interval):
     
     base_file_name = "models/{MANDI_NAME}_{COMMODITY_NAME}_{INTERVAL}.model"
@@ -157,13 +218,11 @@ def load_and_plot_model(commodity_name, mandi_name, interval):
     
     #UNDER REVIEW
     commodity_price_df = get_price_df_by(commodity_name=commodity_name, mandi_name=mandi_name)
-    train,test = train_test_split(commodity_price_df, test_size=0.2)
+    # train,test = train_test_split(commodity_price_df, test_size=0.2)
     target_col = 'commodity_price' 
     test_size = 0.2
     zero_base = True
     window_len = 5
-    epochs = 20
-    batch_size = 32
  
     # training the model
     train, test, X_train, X_test, y_train, y_test = prepared_data(commodity_price_df, target_col, window_len, zero_base, test_size)
@@ -175,31 +234,29 @@ def load_and_plot_model(commodity_name, mandi_name, interval):
     # model.predict(X_test),saved_model.predict(X_test)
     # )
     
-    history=saved_model.fit( X_train, y_train, validation_data=(X_test, y_test), epochs=epochs, batch_size=batch_size, verbose=1, shuffle=True)
+    # history=saved_model.fit( X_train, y_train, validation_data=(X_test, y_test), epochs=epochs, batch_size=batch_size, verbose=1, shuffle=True)
+    # print("🍍 ", history.history)
 
-
-    plt.plot(history.history['loss'], 'r', linewidth=2, label='Train loss')
-    plt.plot(history.history['val_loss'], 'g',
-            linewidth=2, label='Validation loss')
-    plt.title('LSTM')
-    plt.xlabel('Epochs')
-    plt.ylabel('MSE')
-    plt.show()
-    
+    # plt.plot(history.history['loss'], 'r', linewidth=2, label='Train loss')
+    # plt.plot(history.history['val_loss'], 'g',
+    #         linewidth=2, label='Validation loss')
+    # plt.title('LSTM')
+    # plt.xlabel('Epochs')
+    # plt.ylabel('MSE')
+    # plt.show()
+    print( "🐅",  test)
     targets = test[target_col][window_len:]
-    # X_future = None
     preds = saved_model.predict(X_test).squeeze()
-    MAE=mean_absolute_error(preds, y_test)
     
-    MSE = mean_squared_error(preds, y_test)
-    print("!!!!! MSE=", MSE)
-    print("!!!!! MAE=", MAE)
-    R2 = r2_score(y_test, preds)
-    print("R2=", R2)
+    # MAE and MSE is calculated just to know the accuracy. They are not actually used anywhere
+    # MAE=mean_absolute_error(preds, y_test)
+    # MSE = mean_squared_error(preds, y_test)
     
-    preds = test[target_col].values[:-window_len] * (preds + 1)
-    preds = pd.Series(index=targets.index, data=preds)
-    plot_line(commodity_name,targets, preds, 'actual', 'prediction', lw=2)
+    # R2 = r2_score(y_test, preds)
+    # preds = test[target_col].values[:-window_len] * (preds + 1)
+    # preds = pd.Series(index=targets.index, data=preds)
+    # plot_line(commodity_name,targets, preds, 'actual', 'prediction', lw=2)
+    print(preds.to_frame())
  
 def create_model_for_mandi_n_commodity(commodity_name, mandi_name, interval):
     commodity_price_df = get_price_df_by(commodity_name=commodity_name, mandi_name=mandi_name)
@@ -208,10 +265,8 @@ def create_model_for_mandi_n_commodity(commodity_name, mandi_name, interval):
     target_col = 'commodity_price'
     
     # paddy_price_data.drop(["min_price", "max_price"], axis='columns', inplace=True)
-    print(commodity_price_df.head(5))
-    train, test = train_test_split(commodity_price_df, test_size=0.2)
+
     # plot_line(train[target_col], test[target_col], 'training', 'test', title='title')
-    
     np.random.seed(42)
     window_len = 5
     test_size = 0.2
@@ -226,12 +281,12 @@ def create_model_for_mandi_n_commodity(commodity_name, mandi_name, interval):
     # training the model
     train, test, X_train, X_test, y_train, y_test = prepared_data(
     commodity_price_df, target_col, window_len=window_len, zero_base=zero_base, test_size=test_size)
-    
+   
     model = build_lstm_model(
     X_train, output_size=1, neurons=lstm_neurons, dropout=dropout, loss=loss,
     optimizer=optimizer)
     
-    history = model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=epochs, batch_size=batch_size, verbose=1, shuffle=True)
+    model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=epochs, batch_size=batch_size, verbose=1, shuffle=True)
     base_file_name = "models/{MANDI_NAME}_{COMMODITY_NAME}_{INTERVAL}.model"
     
     model.save(base_file_name.format(MANDI_NAME= mandi_name, COMMODITY_NAME=commodity_name , INTERVAL=interval))

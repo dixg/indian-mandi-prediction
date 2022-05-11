@@ -42,7 +42,7 @@ data = {
     'stateName': 'HARYANA',
     'commodityName': 'PADDY-BASMATI1121',
     'apmcName': 'BARWALA HISAR',
-    'fromDate': '2018-11-24',
+    'fromDate': '2020-11-24',
     'toDate': '2022-02-28'
 }
 
@@ -71,6 +71,8 @@ df = pd.DataFrame(filtered_modal_price_list, columns=[
                   'date','paddy_price','min_price', 'max_price'])
 data = df.sort_values('date')
 print(data)
+print("Top 10:",data.head(10) )
+
 
 
 # Adding a new column "Prediction" corresponding to next week close price.

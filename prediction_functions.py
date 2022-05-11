@@ -39,7 +39,7 @@ def get_price_df_by(commodity_name, mandi_name):
        'commodityName': commodity_name, 
        'apmcName': mandi_name,
        'fromDate': '2022-01-01',
-       'toDate': '2022-03-31'
+       'toDate': '2022-05-0'
    }
  
    response = requests.post('https://enam.gov.in/web/Ajax_ctrl/trade_data_list',
@@ -153,7 +153,7 @@ index         value
 Y_train[i] = f(X_train[i])
 X_train: [100,101,102,103,104,105,106,107,108,109]
 Y_train: [101,102,103,104,105,106,107,108,109,110]
-
+eg for 2022-03-10, actual value is 100 and predicted is 101
 
 y=f(x)
 here x is value for a date and y is predicted value for the date+(window_length)
@@ -256,7 +256,7 @@ def load_and_plot_model(commodity_name, mandi_name, interval):
     # preds = test[target_col].values[:-window_len] * (preds + 1)
     # preds = pd.Series(index=targets.index, data=preds)
     # plot_line(commodity_name,targets, preds, 'actual', 'prediction', lw=2)
-    print(preds.to_frame())
+    # print(preds.to_frame())
  
 def create_model_for_mandi_n_commodity(commodity_name, mandi_name, interval):
     commodity_price_df = get_price_df_by(commodity_name=commodity_name, mandi_name=mandi_name)

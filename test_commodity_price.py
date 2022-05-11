@@ -133,6 +133,17 @@ df1.plot.scatter(ax=ax,x='date', y='moong_whole_price', c='blue')
 plt.autoscale(enable=True, axis='y')
 # plt.show()
 
+
+
+
+
+
+
+
+
+
+
+
 ## Gram 
 
 cookies = {

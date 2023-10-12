@@ -1,4 +1,4 @@
-# Indian-mandi-prediction aka AgriPredict: Commodity Price Prediction for Indian Farmers
+# Indian-mandi-prediction: Commodity Price Prediction for Indian Farmers
 
 A web application to empower Indian farmers with predictive insights into agricultural commodity prices using advanced ML. Published in the International Journal of Multidisciplinary Research and Growth Evaluation,
 [Article Link](https://www.researchgate.net/publication/363376035_Machine_Learning_Price_Prediction_of_Agricultural_Produces_for_Indian_Farmers_using_LSTM)
